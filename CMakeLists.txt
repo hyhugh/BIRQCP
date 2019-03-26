@@ -11,30 +11,27 @@
 #
 ImportCapDL()
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -u __vsyscall_ptr")
+include(helpers.cmake)
 
+add_subdirectory(roottask)
 
 cdl_pp(${CMAKE_CURRENT_SOURCE_DIR}/manifest.py cdl_pp_target
-
     ELF "provider"
     CFILE "${CMAKE_CURRENT_BINARY_DIR}/cspace_provider.c"
 
     ELF "roottask"
     CFILE "${CMAKE_CURRENT_BINARY_DIR}/cspace_roottask.c"
-
 )
 
 add_executable(provider EXCLUDE_FROM_ALL provider.c cspace_provider.c)
 add_dependencies(provider cdl_pp_target)
 target_link_libraries(provider sel4tutorials)
-
 list(APPEND elf_files "$<TARGET_FILE:provider>")
 list(APPEND elf_targets "provider")
 
-
-add_executable(roottask EXCLUDE_FROM_ALL roottask.c cspace_roottask.c)
 add_dependencies(roottask cdl_pp_target)
-target_link_libraries(roottask sel4tutorials)
-
+cmake_policy(SET CMP0079 NEW)
+target_sources(roottask PRIVATE ../cspace_roottask.c)
 list(APPEND elf_files "$<TARGET_FILE:roottask>")
 list(APPEND elf_targets "roottask")
 
