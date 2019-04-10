@@ -34,7 +34,7 @@ function(CreateComponent)
         add_executable(${elf} EXCLUDE_FROM_ALL ${cfile} ${cspace})
         add_dependencies(${elf} ${CREATE_COMPONENT_TARGET}_pp_target)
 
-        target_link_libraries(${elf} sel4tutorials)
+        target_link_libraries(${elf} PRIVATE sel4tutorials)
 
         list(APPEND elf_files "$<TARGET_FILE:${elf}>")
         list(APPEND elf_targets "${elf}")

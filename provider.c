@@ -14,7 +14,6 @@
 #include <cpio/cpio.h>
 #include <simple-default/simple-default.h>
 
-#include <vka/kobject_t.h>
 #include <utils/util.h>
 #include <sel4/sel4.h>
 #include <sel4utils/sel4_zf_logif.h>
@@ -36,8 +35,7 @@ static seL4_Word free_slot_start;
 
 extern seL4_Word cnode_size;
 
-extern seL4_Word this_tcb;
-extern seL4_Word this_cnode;
+extern seL4_Word provider_cnode;
 
 extern seL4_Word roottask_tcb;
 extern seL4_Word roottask_cnode;
@@ -46,8 +44,13 @@ extern seL4_Word device_untyped;
 extern seL4_Word device_untyped_addr;
 
 extern seL4_Word syscall_ep;
+extern seL4_Word irq_control;
+extern seL4_Word roottask_bi_addr;
 
 static seL4_BootInfo* bi;
+
+extern seL4_Word free_slot_1;
+extern seL4_Word free_slot_2;
 
 static void dummy_ui_frames_cap()
 {
@@ -64,7 +67,7 @@ static void move_untyped_cap()
             free_slot_start++,
             CONFIG_WORD_SIZE,
 
-            this_cnode,
+            provider_cnode,
             untyped_start + i,
             CONFIG_WORD_SIZE,
             seL4_AllRights
@@ -72,15 +75,13 @@ static void move_untyped_cap()
         printf(".\n");
 
         bi->untypedList[i].sizeBits = untyped_size_bit;
-
     }
 
     seL4_CNode_Move(
             roottask_cnode,
             free_slot_start++,
             CONFIG_WORD_SIZE,
-
-            this_cnode,
+            provider_cnode,
             device_untyped,
             CONFIG_WORD_SIZE
             );
@@ -98,7 +99,22 @@ static void set_bootinfo_addr()
     seL4_Word error = seL4_TCB_ReadRegisters(roottask_tcb, 0, 0, sizeof(regs) / sizeof(seL4_Word), &regs);
     ZF_LOGF_IFERR(error, "Failed to read registers");
 
-    regs.r0 = (seL4_Word)0xf8000;
+    #ifdef CONFIG_ARCH_AARCH32
+        regs.r0 = roottask_bi_addr;
+    #endif
+    #ifdef CONFIG_ARCH_AARCH64
+        regs.x0 = roottask_bi_addr;
+    #endif
+    #ifdef CONFIG_ARCH_IA32
+        regs.eax = roottask_bi_addr;
+    #endif
+    #ifdef CONFIG_ARCH_X86_64
+        regs.rdi = roottask_bi_addr;
+    #endif
+    #ifdef CONFIG_ARCH_RISCV
+        regs.a0 = roottask_bi_addr;
+    #endif
+
     error = seL4_TCB_WriteRegisters(roottask_tcb, 0, 0, sizeof(regs) / sizeof(seL4_Word), &regs);
     ZF_LOGF_IFERR(error, "Failed to write registers");
 }
@@ -106,7 +122,7 @@ static void set_bootinfo_addr()
 static void fill_bi()
 {
     bi = (void*)bi_frame;
-    ZF_LOGD("Bootinfo addr is %p", bi);
+    ZF_LOGD("filling bootinfo frame @ %p", bi);
     bi->nodeID = 0;
     bi->numNodes = 1;
     bi->initThreadDomain = 0;
@@ -124,15 +140,15 @@ int main(int argc, char *argv[])
     fill_bi();
 
     // handling irq syscalls
-    seL4_CPtr new_cap = 201;
-    seL4_CPtr caller = 200;
+    seL4_CPtr new_cap = free_slot_1;
+    seL4_CPtr caller = free_slot_2;
 
     while (1) {
         seL4_Word result;
-        seL4_SetCapReceivePath(this_cnode, new_cap, seL4_WordBits);
+        seL4_SetCapReceivePath(provider_cnode, new_cap, seL4_WordBits);
         seL4_Word badge;
         seL4_MessageInfo_t tag = seL4_Recv(syscall_ep, &badge);
-        seL4_CNode_SaveCaller(this_cnode, caller, CONFIG_WORD_SIZE);
+        seL4_CNode_SaveCaller(provider_cnode, caller, CONFIG_WORD_SIZE);
         seL4_Word invLabel = seL4_MessageInfo_get_label(tag);
 
         switch (invLabel) {
@@ -141,7 +157,7 @@ int main(int argc, char *argv[])
             seL4_Word mr0 = seL4_GetMR(0);
             seL4_Word mr1 = seL4_GetMR(1);
             seL4_Word mr2 = seL4_GetMR(2);
-            result = seL4_IRQControl_Get(seL4_CapIRQControl, mr0, new_cap, mr1, mr2);
+            result = seL4_IRQControl_Get(irq_control, mr0, new_cap, mr1, mr2);
             seL4_Send(caller, seL4_MessageInfo_new(result, 0, 0, 0));
             break;
         }

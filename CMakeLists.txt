@@ -32,9 +32,9 @@ list(APPEND elf_targets "provider")
 add_dependencies(roottask cdl_pp_target)
 cmake_policy(SET CMP0079 NEW)
 target_sources(roottask PRIVATE ../cspace_roottask.c)
+
 list(APPEND elf_files "$<TARGET_FILE:roottask>")
 list(APPEND elf_targets "roottask")
-
 
 cdl_ld("${CMAKE_CURRENT_BINARY_DIR}/spec.cdl" capdl_spec
     MANIFESTS ${CMAKE_CURRENT_SOURCE_DIR}/manifest.py
