@@ -7,9 +7,9 @@ from capdl.Allocator import ObjectAllocator, CSpaceAllocator, AddressSpaceAlloca
 import os
 
 
-CNODE_SIZE = 20
+CNODE_SIZE = 22
 # NOTE: this guard_size must be WORD_SIZE - cnode_size
-GUARD_SIZE = 32-CNODE_SIZE
+GUARD_SIZE = 64-CNODE_SIZE
 
 cnode_provider = CNode("cnode_provider", CNODE_SIZE)
 cnode_roottask = CNode("cnode_roottask", CNODE_SIZE)
@@ -25,12 +25,12 @@ cap_asid_control = Cap(asid_control)
 
 ipc_provider_obj = Frame("ipc_provider_obj", 4096)
 ipc_roottask_obj = Frame("ipc_roottask_obj", 4096)
-vspace_provider = PageDirectory("vspace_provider")
-vspace_roottask = PageDirectory("vspace_roottask")
+vspace_provider = PML4("vspace_provider")
+vspace_roottask = PML4("vspace_roottask")
 asid_pool_roottask = ASIDPool('asid_pool')
 
 tcb_provider = TCB("tcb_provider", ipc_buffer_vaddr=0x0, ip=0x0,
-                   sp=0x0, elf="provider", prio=255, max_prio=255, affinity=0, init=[])
+                   sp=0x0, elf="provider", prio=254, max_prio=254, affinity=0, init=[])
 
 shared_frame_obj = Frame("shared_frame_obj", 0x1000)
 device = Untyped('device_untyped', paddr=0xf8001000)
@@ -42,7 +42,7 @@ cnode_provider["0x4"] = cap_irq_control
 cnode_provider["0x5"] = Cap(ep, read=True, write=True, grant=True)
 
 tcb_roottask = TCB("tcb_roottask", ipc_buffer_vaddr=0x0, ip=0x0,
-                   sp=0x0, elf="roottask", prio=254, max_prio=254, affinity=0, init=[])
+                   sp=0x0, elf="roottask", prio=253, max_prio=253, affinity=0, init=[])
 cnode_provider["0x6"] = Cap(tcb_roottask)
 cnode_provider["0x7"] = Cap(cnode_roottask, guard_size=GUARD_SIZE)
 cnode_provider["0x8"] = Cap(device, write=True, read=True, grant=True)
@@ -135,12 +135,13 @@ obj = set([
 ])
 obj.update(untyped_list)
 
-spec = Spec('aarch32')
+arch = 'x86_64'
+spec = Spec(arch)
 spec.objs = obj
 
 objects = ObjectAllocator()
 objects.counter = len(obj)
-objects.spec.arch = 'aarch32'
+objects.spec.arch = arch
 objects.merge(spec)
 
 provider_alloc = CSpaceAllocator(cnode_provider)
@@ -170,14 +171,11 @@ roottask_addr_alloc = AddressSpaceAllocator(None, vspace_roottask)
 roottask_addr_alloc._symbols = {
     'mainIpcBuffer': ([4096], [Cap(ipc_roottask_obj, read=True, write=True)]),
     'stack': (
-        [4096],
-        [
-            Cap(stack_0_roottask_obj, read=True, write=True),
-        ]
+        [4096], [ Cap(stack_0_roottask_obj, read=True, write=True), ]
     )
 }
 
-roottask_bi_addr = 0xf9000
+roottask_bi_addr = 0x52b000
 roottask_addr_alloc.add_region_with_caps(
     roottask_bi_addr, [0x1000], [Cap(shared_frame_obj, read=True, write=True)]
 )
@@ -222,8 +220,8 @@ cap_symbols = {
 }
 
 region_symbols = {
-    'provider': [('stack', 65536, 'size_12bit'), ('mainIpcBuffer', 4096, 'size_12bit'), ('bi_frame', 4096, 'size_12bit')],
-    'roottask': [('stack', 0x1000, 'size_12bit'), ('mainIpcBuffer', 4096, 'size_12bit')]
+    'provider': [('stack', 65536, '.size_12bit'), ('mainIpcBuffer', 4096, '.size_12bit'), ('bi_frame', 4096, '.size_12bit')],
+    'roottask': [('stack', 0x1000, '.size_12bit'), ('mainIpcBuffer', 4096, '.size_12bit')]
 }
 
 elfs = {

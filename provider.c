@@ -66,7 +66,6 @@ static void move_untyped_cap()
             roottask_cnode,
             free_slot_start++,
             CONFIG_WORD_SIZE,
-
             provider_cnode,
             untyped_start + i,
             CONFIG_WORD_SIZE,
