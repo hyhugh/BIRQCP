@@ -75,7 +75,7 @@ cap_symbols = {
 }
 
 region_symbols = {
-    'program_1': [('stack', 0x2000, '.size_12bits'), ('mainIpcBuffer', 4096, '.size_12bits')],
+    'program_1': [('stack', 0x2000, '.size_12bits'), ('mainIpcBuffer', 4096, '.size_12bits'), ],
 }
 
 elfs =  {

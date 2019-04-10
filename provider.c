@@ -46,6 +46,7 @@ extern seL4_Word device_untyped_addr;
 extern seL4_Word syscall_ep;
 extern seL4_Word irq_control;
 extern seL4_Word roottask_bi_addr;
+extern seL4_Word roottask_ipc_addr;
 
 static seL4_BootInfo* bi;
 
@@ -126,6 +127,7 @@ static void fill_bi()
     bi->numNodes = 1;
     bi->initThreadDomain = 0;
     bi->initThreadCNodeSizeBits = cnode_size;
+    bi->ipcBuffer = (void *)roottask_ipc_addr;
 
     dummy_ui_frames_cap();
     move_untyped_cap();

@@ -180,6 +180,11 @@ roottask_addr_alloc.add_region_with_caps(
     roottask_bi_addr, [0x1000], [Cap(shared_frame_obj, read=True, write=True)]
 )
 
+roottask_ipc_addr = 0x52c000
+roottask_addr_alloc.add_region_with_caps(
+    roottask_ipc_addr, [0x1000], [Cap(ipc_roottask_obj, read=True, write=True)]
+)
+
 addr_spaces = {
     'provider': provider_addr_alloc,
     'roottask': roottask_addr_alloc,
@@ -198,6 +203,7 @@ cap_symbols = {
         ('num_untyped_provide', num_untyped),
         ('untyped_size_bit', size_untyped),
         ('roottask_bi_addr', roottask_bi_addr),
+        ('roottask_ipc_addr', roottask_ipc_addr),
 
         #empty start and end for the 'roottask'
         ('empty_start', 13),
