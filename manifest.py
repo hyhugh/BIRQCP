@@ -207,7 +207,7 @@ cap_symbols = {
         ('roottask_bi_addr', roottask_bi_addr),
         ('roottask_ipc_addr', roottask_ipc_addr),
 
-        #empty start and end for the 'roottask'
+        # empty start and end for the 'roottask'
         ('empty_start', 13),
         ('empty_end', 13 + 30000),
 
