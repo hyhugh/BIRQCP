@@ -22,9 +22,9 @@ manifest: <https://github.com/hyhugh/BIRQCP-manifest>
     cmake -DCMAKE_TOOLCHAIN_FILE=../kernel/gcc.cmake -G Ninja -DTUTORIAL_DIR=BIRQCP -DTUT_BOARD=zynq7000 -DAARCH32=TRUE ..
     ```
 
-    You possibly want to run the third command multiple times since SELFOUR-1951 is still a thing. Just in case the project is not corerctly confiured, you could get strange errors like capdl loader is complaining about insufficient empty slots.
+    You possibly want to run the third command multiple times since SELFOUR-1951 is still a thing. When the project is not corerctly confiured, you could get strange errors like the real roottask capdl loader complaining about insufficient empty slots.
 
-    finally you build the project using `ninja` then you can run the demo using `./simulate` in the build directory
+    Finally you build the project using `ninja` then you can run the demo using `./simulate` in the build directory.
 
 #### Demo program structure
 
@@ -51,3 +51,8 @@ The demo program has the structure as below
 `timer` and `client` are grabbed from `sel4-tutorial`
 
 #### Guide to use BIRQCP
+
+To use BIRQCP you need to write an ad-hoc `manifest.py` for each of your `fake_roottask`s.
+Please refer to the current `manifest.py`, I have written many comments inside there to explain.
+
+Then you need to setup the build system for the `fake_roottask`, I have written a helper function called `CreateComponent` to conveniently create a `fake_roottask`, please refer `CMakeLists.txt` for how to use it.

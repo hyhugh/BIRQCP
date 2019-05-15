@@ -13,12 +13,16 @@ ImportCapDL()
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -u __vsyscall_ptr")
 include(helpers.cmake)
 
+# create the fake_roottask capdl-loader component,
+# you will need to pass the manifest and all the c sources into this function
+# note that this manifest is the manifest for the fake_roottask
 CreateComponent(
     TARGET roottask
     MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/manifest_rt.py"
     C_FILES "client.c" "timer.c"
     )
 
+# standard cdl_pp, note that the manifest here is the manifest written by you
 cdl_pp(${CMAKE_CURRENT_SOURCE_DIR}/manifest.py cdl_pp_target
     ELF "provider"
     CFILE "${CMAKE_CURRENT_BINARY_DIR}/cspace_provider.c"
@@ -35,6 +39,7 @@ list(APPEND elf_targets "provider")
 
 add_dependencies(roottask cdl_pp_target)
 target_link_libraries(roottask sel4tutorials)
+# here we add the cspace file to the source of the fake_roottask
 target_sources(roottask PRIVATE cspace_roottask.c)
 list(APPEND elf_files "$<TARGET_FILE:roottask>")
 list(APPEND elf_targets "roottask")
