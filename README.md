@@ -55,4 +55,4 @@ The demo program has the structure as below
 To use BIRQCP you need to write an ad-hoc `manifest.py` for each of your `fake_roottask`s.
 Please refer to the current `manifest.py`, I have written many comments inside there to explain.
 
-Then you need to setup the build system for the `fake_roottask`, I have written a helper function called `CreateComponent` to conveniently create a `fake_roottask`, please refer `CMakeLists.txt` for how to use it.
+Then you need to setup the build system, I have written a helper function called `CreateComponent` to conveniently create a `fake_roottask`, please refer `CMakeLists.txt` for how to use it and how to setup the build system.
